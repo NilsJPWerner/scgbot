@@ -12,7 +12,7 @@ import sheets
 
 app = Flask(__name__)
 
-UPDATE_MESSAGE_START_DATE = datetime(2017, 2, 5, 15, 0)
+UPDATE_MESSAGE_START_DATE = datetime(2017, 2, 5, 17, 0)
 UPDATE_MESSAGE_UPDATE_INTERVAL = 1
 
 # SLACK_WEBHOOK_SECRET = os.environ.get('SLACK_WEBHOOK_SECRET')
@@ -35,7 +35,7 @@ def post_daily_stats():
     gs = sheets.OutreachSheet()
     bot = slack.SlackBot(slack.SLACK_TOKEN)
     message = gs.create_daily_update_message()
-    sent = bot.send_channel_message(slack.PERSONAL_USER_ID, message)
+    sent = bot.send_channel_message(slack.GENERAL_CHANNEL_ID, message)
     if sent:
         print "message sent succesfully at: %s" % datetime.now()
     else:
@@ -47,9 +47,8 @@ scheduler.start()
 scheduler.add_job(
     func=post_daily_stats,
     trigger=IntervalTrigger(
-        # start_date=UPDATE_MESSAGE_START_DATE,
-        # days=UPDATE_MESSAGE_UPDATE_INTERVAL,
-        seconds=10),
+        start_date=UPDATE_MESSAGE_START_DATE,
+        days=UPDATE_MESSAGE_UPDATE_INTERVAL),
     id='printing_job',
     name='Posts the daily giving stats to the general channel',
     replace_existing=True)
