@@ -35,7 +35,7 @@ def post_daily_stats():
     gs = sheets.OutreachSheet()
     bot = slack.SlackBot(slack.SLACK_TOKEN)
     message = gs.create_daily_update_message()
-    sent = bot.send_channel_message(slack.EXECUTIVE_CHANNEL_ID, message)
+    sent = bot.send_channel_message(slack.PERSONAL_USER_ID, message)
     if sent:
         print "message sent succesfully at: %s" % datetime.now()
     else:
