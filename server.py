@@ -28,13 +28,14 @@ UPDATE_MESSAGE_UPDATE_INTERVAL = 1
 #         print inbound_message
 #     return Response(), 200
 
-
+def create_update_message():
+    gs = sheets.OutreachSheet()
+    return gs.create_daily_update_message()
 
 def post_daily_stats():
     """Need to run tests on gs and bot before sending message"""
-    gs = sheets.OutreachSheet()
     bot = slack.SlackBot(slack.SLACK_TOKEN)
-    message = gs.create_daily_update_message()
+    message = create_update_message()
     sent = bot.send_channel_message(slack.GENERAL_CHANNEL_ID, message)
     if sent:
         print "message sent succesfully at: %s" % datetime.now()
@@ -58,6 +59,10 @@ atexit.register(lambda: scheduler.shutdown())
 @app.route('/', methods=['GET'])
 def test():
     return Response('It works!')
+
+@app.route('/test-daily-message/', methods=['GET'])
+def test_giving_update():
+    return Response(create_update_message())
 
 
 if __name__ == "__main__":
