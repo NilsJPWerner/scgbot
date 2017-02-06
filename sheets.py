@@ -1,9 +1,12 @@
 import gspread
+import os
 from oauth2client.service_account import ServiceAccountCredentials
 
 SCOPE = ['https://spreadsheets.google.com/feeds']
 
-CREDENTIALS = ServiceAccountCredentials.from_json_keyfile_name('scgbot-5baffeec478c.json', SCOPE)
+THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+JSON_CREDENTIALS = os.path.join(THIS_FOLDER, 'scgbot-5baffeec478c.json')
+CREDENTIALS = ServiceAccountCredentials.from_json_keyfile_name(JSON_CREDENTIALS, SCOPE)
 
 GC = gspread.authorize(CREDENTIALS)
 
