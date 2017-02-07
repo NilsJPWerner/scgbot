@@ -43,6 +43,11 @@ def post_update_message():
     else:
         print "message failed to send at: %s" % datetime.now()
 
+def send_user_update_message():
+    bot = slack.SlackBot(slack.SLACK_TOKEN)
+    gs = sheets.OutreachSheet()
+    message = gs.get_individual_update_message(slack.PERSONAL_USER_ID)
+    bot.send_channel_message(slack.EXECUTIVE_CHANNEL_ID, message)
 
 if POST_UPDATE_MESSAGE:
     scheduler = BackgroundScheduler()
@@ -68,4 +73,6 @@ def test_giving_update():
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    # app.run(debug=False)
+    send_user_update_message()
+
