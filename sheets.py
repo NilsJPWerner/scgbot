@@ -32,12 +32,6 @@ class OutreachSheet(object):
             print 'Something is wrong with bot_sheet'
             print 'B3 contained: %s' % test_cell.value
 
-    def get_total_donations(self):
-        return int(self.bot_sheet.acell(TOTAL_DONATIONS_CELL).value)
-
-    def get_total_donations_goal(self):
-        return int(self.bot_sheet.acell(TOTAL_DONATION_GOAL_CELL).value)
-
     def create_daily_update_message(self):
         donations = self.get_total_donations()
         total_goal = self.get_total_donations_goal()
@@ -57,6 +51,23 @@ class OutreachSheet(object):
             message += "%s %s - %s\n" % (p[1], p[0][0], p[0][1])
         return message
 
+    def get_individual_update_message(self, user_id):
+        total_donations = self.get_user_this_weeks_donations(user_id)
+        weeks_donations = self.get_user_this_weeks_donations(user_id)
+        real_name = self.get_user_real_name(user_id)
+
+        message = ":moneybag: *%s here is your personal update* :moneybag:\n\n" % real_name
+        message += ":bar_chart: Your donations this week: %s\n" % weeks_donations
+        message += ":chart_with_upwards_trend: Your total donations: %s\n" % total_donations
+        return message
+
+    def get_total_donations(self):
+        return int(self.bot_sheet.acell(TOTAL_DONATIONS_CELL).value)
+
+    def get_total_donations_goal(self):
+        return int(self.bot_sheet.acell(TOTAL_DONATION_GOAL_CELL).value)
+
+
     def user_id_to_name(self, user_id):
         user_id_cell = self.bot_sheet.find(user_id)
         user_name_cell = self.bot_sheet.cell(user_id_cell.row, user_id_cell.col - 1)
@@ -67,9 +78,13 @@ class OutreachSheet(object):
         user_total_donation_cell = self.bot_sheet.cell(user_id_cell.row, user_id_cell.col + 1)
         return int(user_total_donation_cell.value)
 
-    def get_user_weeks_donations(self, user_id):
+    def get_user_this_weeks_donations(self, user_id):
         user_id_cell = self.bot_sheet.find(user_id)
-        user_week_donation_cell = self.bot_sheet.cell(user_id_cell.row, user_id_cell.col + 3)
+        return self.bot_sheet.cell(user_id_cell.row, user_id_cell.col + 3).value
+
+    def get_user_real_name(self, user_id):
+        user_id_cell = self.bot_sheet.find(user_id)
+        return self.bot_sheet.cell(user_id_cell.row, user_id_cell.col - 1).value
 
     def get_next_challenge(self):
         challenge = {}
@@ -98,4 +113,4 @@ class OutreachSheet(object):
 
 if __name__ == "__main__":
     outreach = OutreachSheet()
-    print outreach.create_daily_update_message()
+    print outreach.get_individual_update_message("U3QD2RBN1")

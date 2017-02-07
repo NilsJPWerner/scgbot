@@ -12,7 +12,8 @@ import sheets
 
 app = Flask(__name__)
 
-UPDATE_MESSAGE_START_DATE = datetime(2017, 2, 5, 15, 0)
+POST_UPDATE_MESSAGE = False
+UPDATE_MESSAGE_START_DATE = datetime(2017, 2, 5, 17, 0)
 UPDATE_MESSAGE_UPDATE_INTERVAL = 1
 
 # SLACK_WEBHOOK_SECRET = os.environ.get('SLACK_WEBHOOK_SECRET')
@@ -28,38 +29,55 @@ UPDATE_MESSAGE_UPDATE_INTERVAL = 1
 #         print inbound_message
 #     return Response(), 200
 
-
-
-def post_daily_stats():
-    """Need to run tests on gs and bot before sending message"""
+def create_update_message():
     gs = sheets.OutreachSheet()
+    return gs.create_daily_update_message()
+
+# def create_user_update_message():
+#     gs = sheets.OutreachSheet()
+#     return gs.create_daily_update_message()
+
+def post_update_message():
+    """Need to run tests on gs and bot before sending message"""
     bot = slack.SlackBot(slack.SLACK_TOKEN)
-    message = gs.create_daily_update_message()
-    sent = bot.send_channel_message(slack.PERSONAL_USER_ID, message)
+    message = create_update_message()
+    sent = bot.send_direct_message(slack.PERSONAL_USER_ID, message)
     if sent:
         print "message sent succesfully at: %s" % datetime.now()
     else:
         print "message failed to send at: %s" % datetime.now()
 
+def send_user_update_message():
+    bot = slack.SlackBot(slack.SLACK_TOKEN)
+    gs = sheets.OutreachSheet()
+    message = gs.get_individual_update_message(slack.PERSONAL_USER_ID)
+    bot.send_channel_message(slack.EXECUTIVE_CHANNEL_ID, message)
 
-scheduler = BackgroundScheduler()
-scheduler.start()
-scheduler.add_job(
-    func=post_daily_stats,
-    trigger=IntervalTrigger(
-        # start_date=UPDATE_MESSAGE_START_DATE,
-        # days=UPDATE_MESSAGE_UPDATE_INTERVAL,
-        seconds=10),
-    id='printing_job',
-    name='Posts the daily giving stats to the general channel',
-    replace_existing=True)
-# Shut down the scheduler when exiting the app
-atexit.register(lambda: scheduler.shutdown())
+
+if POST_UPDATE_MESSAGE:
+    scheduler = BackgroundScheduler()
+    scheduler.start()
+    scheduler.add_job(
+        func=post_update_message,
+        trigger=IntervalTrigger(
+            start_date=UPDATE_MESSAGE_START_DATE,
+            days=UPDATE_MESSAGE_UPDATE_INTERVAL),
+        id='printing_job',
+        name='Posts the daily giving stats to the general channel',
+        replace_existing=True)
+    # Shut down the scheduler when exiting the app
+    atexit.register(lambda: scheduler.shutdown())
 
 @app.route('/', methods=['GET'])
 def test():
     return Response('It works!')
 
+@app.route('/test/update-message/', methods=['GET'])
+def test_giving_update():
+    return Response(create_update_message())
+
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    # app.run(debug=False)
+    send_user_update_message()
+
