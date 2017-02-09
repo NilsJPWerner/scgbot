@@ -1,6 +1,6 @@
 import os
-from slackclient import SlackClient
 from datetime import datetime
+from slackclient import SlackClient
 
 SLACK_TOKEN = os.environ.get('SLACK_TEST_API_KEY')
 GENERAL_CHANNEL_ID = "C3QD2RG93"
@@ -41,12 +41,11 @@ class SlackBot(object):
             icon_emoji=':robot_face:')
 
         if ret['ok']:
-            print "message sent succesfully at: %s" % datetime.now()
+            return "message sent succesfully at: %s" % datetime.now()
         else:
-            print "message failed to send at: %s" % datetime.now()
-            print "reason: %s" % ret['error']
+            return "message failed to send at: %s\nreason: %s" % (datetime.now(), ret['error'])
 
 
 if __name__ == '__main__':
     bot = SlackBot(SLACK_TOKEN)
-    bot.send_message('D121', 'testing')
+    bot.send_message(PERSONAL_USER_ID, 'testing')
