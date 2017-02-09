@@ -1,5 +1,6 @@
 import os
 from slackclient import SlackClient
+from datetime import datetime
 
 SLACK_TOKEN = os.environ.get('SLACK_TEST_API_KEY')
 GENERAL_CHANNEL_ID = "C3QD2RG93"
@@ -25,29 +26,27 @@ class SlackBot(object):
             return channels_call['channels']
         return None
 
-    def send_channel_message(self, channel_id, message):
+    def send_message(self, channel_id, message):
+        """Takes user ids or channel ids, and then sends the given message
+        throught the bot user. Will print to say if message succeeded"""
+        if channel_id[0] == 'U':
+            channel = self.slack_client.api_call("im.open", user=channel_id)['channel']['id']
+        else:
+            channel = channel_id
         ret = self.slack_client.api_call(
             "chat.postMessage",
-            channel=channel_id,
+            channel=channel,
             text=message,
             username='scg_bot',
-            icon_emoji=':robot_face:'
-        )
-        return ret['ok']
+            icon_emoji=':robot_face:')
 
-    def send_direct_message(self, user_id, message):
-        channel = self.slack_client.api_call("im.open", user=user_id)
-        if channel['ok']:
-            ret = self.slack_client.api_call(
-                "chat.postMessage",
-                as_user=True,
-                channel=channel['channel']['id'],
-                text=message,
-                username='scg_bot',
-                icon_emoji=':robot_face:'
-            )
-        return ret['ok']
+        if ret['ok']:
+            print "message sent succesfully at: %s" % datetime.now()
+        else:
+            print "message failed to send at: %s" % datetime.now()
+            print "reason: %s" % ret['error']
+
 
 if __name__ == '__main__':
     bot = SlackBot(SLACK_TOKEN)
-    bot.send_direct_message('U3QD2RBN1', 'testing')
+    bot.send_message('D121', 'testing')
