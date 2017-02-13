@@ -8,8 +8,6 @@ THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 JSON_CREDENTIALS = os.path.join(THIS_FOLDER, 'scgbot-5baffeec478c.json')
 CREDENTIALS = ServiceAccountCredentials.from_json_keyfile_name(JSON_CREDENTIALS, SCOPE)
 
-GC = gspread.authorize(CREDENTIALS)
-
 TEST_CELL = 'B3'
 TOTAL_DONATIONS_CELL = 'B5'
 TOTAL_DONATION_GOAL_CELL = 'B6'
@@ -22,9 +20,12 @@ NEXT_CHALLENGE_NAME = 'B14'
 NEXT_CHALLENGE_COUNT = 'B15'
 NEXT_CHALLENGE_DATE = 'B16'
 
+GIFT_COL = 'H'
+
 class OutreachSheet(object):
     """Object containing worksheets from outreach document"""
     def __init__(self):
+        GC = gspread.authorize(CREDENTIALS)
         self.bot_sheet = GC.open("2017 Committee Outreach").worksheet("bot_sheet")
 
     def test_bot_sheet(self):
@@ -55,8 +56,8 @@ class OutreachSheet(object):
         return message
 
     def get_individual_update_message(self, user_id):
-        total_donations = self.get_user_this_weeks_donations(user_id)
-        weeks_donations = self.get_user_this_weeks_donations(user_id)
+        total_donations = self.get_user_donations_this_weeks(user_id)
+        weeks_donations = self.get_user_donations_this_weeks(user_id)
         real_name = self.get_user_real_name(user_id)
 
         message = ":moneybag: *%s here is your personal update* :moneybag:\n\n" % real_name
@@ -70,7 +71,6 @@ class OutreachSheet(object):
     def get_total_donations_goal(self):
         return int(self.bot_sheet.acell(TOTAL_DONATION_GOAL_CELL).value)
 
-
     def user_id_to_name(self, user_id):
         user_id_cell = self.bot_sheet.find(user_id)
         user_name_cell = self.bot_sheet.cell(user_id_cell.row, user_id_cell.col - 1)
@@ -81,7 +81,7 @@ class OutreachSheet(object):
         user_total_donation_cell = self.bot_sheet.cell(user_id_cell.row, user_id_cell.col + 1)
         return int(user_total_donation_cell.value)
 
-    def get_user_this_weeks_donations(self, user_id):
+    def get_user_donations_this_weeks(self, user_id):
         user_id_cell = self.bot_sheet.find(user_id)
         return self.bot_sheet.cell(user_id_cell.row, user_id_cell.col + 3).value
 
@@ -108,12 +108,89 @@ class OutreachSheet(object):
     # def report_error(self, message):
 
 
-    # def get_user_donations_this_week(self, user):
+class SignUpSheet(object):
+
+    def __init__(self):
+        GC = gspread.authorize(CREDENTIALS)
+        self.sign_up_sheet = GC.open("2017 Committee Outreach").worksheet("Sign-Up Sheet")
+
+    def find_gift_cell(self, first_name, last_name, email):
+        try:
+            email_cell = self.sign_up_sheet.find(email)
+            row = email_cell.row
+
+        except gspread.exceptions.CellNotFound:
+            fname_rows = [cell.row for cell in self.sign_up_sheet.findall(first_name)]
+            lname_rows = [cell.row for cell in self.sign_up_sheet.findall(last_name)]
+            matched_rows = set(fname_rows) & set(lname_rows)
+            if len(matched_rows) != 1:
+                return False
+            row = matched_rows.pop()
+
+        return GIFT_COL + str(row)
+
+    def mark_person_as_donated(self, first_name, last_name, email):
+        """Marks person as donated on signup sheet
+
+        First tries to find the person through the email given. If not
+        found, will try to find person through first and last name
+
+        Args:
+            first_name  (str): The first name of the person
+            last_name   (str): The last name of the person
+            email       (str): The email of the person
+
+        Returns:
+            (bool): Whether the cell was succesfully updated
+        """
+        gift_cell_name = self.find_gift_cell(first_name, last_name, email)
+
+        try:
+            if self.sign_up_sheet.acell(gift_cell_name).value != 'Gave':
+                self.sign_up_sheet.update_acell(gift_cell_name, 'Gave')
+            return True
+        except gspread.exceptions.UpdateCellError:
+            return False
+
+
+    # def mark_people_as_donated(self, people):
+    #     """Marks list of people as donated on sign up sheet
+
+    #     Batch version of mark_person_as_donated that bundles updates as one
+    #     api request for speed purposes. Will first attempt to use email key,
+    #     then first and last name
+
+    #     Args:
+    #         people (list): A list of dicts of people's info with keys:
+    #             first_name  (str): The first name of the person
+    #             last_name   (str): The last name of the person
+    #             email       (str): The email of the person
+
+    #     Returns:
+    #         A dict with list of people that were succesfully marked as donated,
+    #         and another list for those who could not be found in the sheet.
+
+    #         {
+    #             'success': [{'email': (str), 'first_name': (str),'last_name': (str)}],
+    #             'failed': [{'email': (str), 'first_name': (str),'last_name': (str)}]
+    #         }
+
+    #     Raises:
+    #     """
+    #     cell_list = []
+    #     for person in people:
+    #         pass
+
 
 
 
 
 
 if __name__ == "__main__":
-    outreach = OutreachSheet()
-    print outreach.get_individual_update_message("U3QD2RBN1")
+    # outreach = OutreachSheet()
+    # print outreach.get_individual_update_message("U3QD2RBN1")
+    signup = SignUpSheet()
+    print "SignUpSheet initialized"
+    # print signup.mark_person_as_donated("Nils", "Werner", "")
+    print signup.find_gift_cell("", "", "acevedoj@uchicago.edu")
+

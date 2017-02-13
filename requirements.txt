@@ -2,4 +2,5 @@ APScheduler==3.3.1
 Flask==0.12
 gspread==0.6.2
 oauth2client==4.0.0
+openpyxl==2.4.2
 slackclient==1.0.5

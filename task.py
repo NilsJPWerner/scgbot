@@ -1,5 +1,4 @@
-import slack
-import sheets
+from modules import slack, sheets
 
 def create_update_message():
     gs = sheets.OutreachSheet()
