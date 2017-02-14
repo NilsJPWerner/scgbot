@@ -69,11 +69,11 @@ def excel_upload():
         if doc.check_sheet_type() == 'OTHER':
             return Response("That is not a supported file")
         donors = doc.get_donors()
-
         print "Time to get donors from excel: %s" % str(datetime.now() - start_time)
         start_time = datetime.now()
-
         gs = sheets.SignUpSheet()
+        print "Time to initialize sign-up sheet: %s" % str(datetime.now() - start_time)
+        start_time = datetime.now()
         worked, failed = [], []
         for donor in donors:
             success = gs.mark_person_as_donated(donor['fname'], donor['lname'], donor['email'])

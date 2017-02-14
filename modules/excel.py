@@ -5,8 +5,8 @@ KINTERA_LAST_NAME_COL = 5
 KINTERA_GIFT_CODE_COL = 7
 KINTERA_SCG_GIFT_CODE = 'SCGM |'
 
-NO_CODE_FIRST_NAME_COL = 5
-NO_CODE_LAST_NAME_COL = 6
+NO_CODE_FIRST_NAME_COL = 4
+NO_CODE_LAST_NAME_COL = 5
 
 GENERAL_NAME_COL = 1
 GENERAL_EMAIL_COL = 3
@@ -48,11 +48,10 @@ class giving_document(object):
                     donors.append(donor)
         elif self.type == 'NO CODE':
             for row in self.sheet.iter_rows(min_row=2):
-                if row[KINTERA_GIFT_CODE_COL].value == KINTERA_SCG_GIFT_CODE:
-                    fname = row[NO_CODE_FIRST_NAME_COL].value
-                    lname = row[NO_CODE_LAST_NAME_COL].value
-                    donor = {'fname': fname, 'lname': lname, 'email': ''}
-                    donors.append(donor)
+                fname = row[NO_CODE_FIRST_NAME_COL].value
+                lname = row[NO_CODE_LAST_NAME_COL].value
+                donor = {'fname': fname, 'lname': lname, 'email': ''}
+                donors.append(donor)
         elif self.type == 'GENERAL':
             for row in self.sheet.iter_rows(min_row=2):
                 if row[GENERAL_GIFT_CODE_COL].value in GENERAL_SCG_GIFT_CODES:

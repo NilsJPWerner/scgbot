@@ -144,7 +144,8 @@ class SignUpSheet(object):
                     matched_rows = set(fname_rows) & set(lname_rows)
                     if len(matched_rows) == 1:  # check if unique combination is found
                         row = matched_rows.pop()
-                    raise gspread.exceptions.CellNotFound  # raise exception if no unique match
+                    else:
+                        raise gspread.exceptions.CellNotFound  # raise exception if no unique match
 
         return GIFT_COL + str(row)
 
