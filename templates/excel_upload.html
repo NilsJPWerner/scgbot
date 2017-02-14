@@ -2,9 +2,11 @@
 <html>
 
 <head>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-	<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+		crossorigin="anonymous">
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+			crossorigin="anonymous"></script>
+			<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 </head>
 
 <body>
@@ -16,12 +18,23 @@
 				<div class="starter-template">
 					<h1>Giving Document Upload</h1>
 					<p class="lead">Use this upload form to quickly update the outreach sheet with new gives.</p>
-						<p>
-						The proccess can take several minutes if there are many entries in the spreadsheet. Just let it sit a while.
-						<br><br>
-						Currently it looks for "Odyssey Unclassified TBD", "College Fund", "Dean's Fund for Student Life", "Jeff Metcalf Internships" or 'SCGM |' in the rows
-					</p>
 				</div>
+			</div>
+
+			<div class="row">
+				<ul>
+					<li>Don't delete any columns in the files. Script relies on column positioning</li>
+					<li>The proccess can take several minutes if there are many entries in the spreadsheet. Just let it sit a while.</li>
+					<li>Currently it looks for:
+						<ul>
+							<li>"Odyssey Unclassified TBD"</li>
+							<li>"College Fund"</li>
+							<li>"Dean's Fund for Student Life"</li>
+							<li>"Jeff Metcalf Internships"</li>
+							<li>"SCGM |"</li>
+						</ul>
+					</li>
+				</ul>
 			</div>
 
 			<br>
@@ -67,9 +80,7 @@
 					</tbody>
 				</table>
 			</div>
-			{% endif %}
-
-			{% if failed %}
+			{% endif %} {% if failed %}
 			<div class="page-header">
 				<h3>Failed</h3>
 			</div>
@@ -103,32 +114,33 @@
 </body>
 
 <script>
-	$(function() {
+	$(function () {
 
-  // We can attach the `fileselect` event to all file inputs on the page
-  $(document).on('change', ':file', function() {
-    var input = $(this),
-        numFiles = input.get(0).files ? input.get(0).files.length : 1,
-        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-    input.trigger('fileselect', [numFiles, label]);
-  });
+		// We can attach the `fileselect` event to all file inputs on the page
+		$(document).on('change', ':file', function () {
+			var input = $(this),
+				numFiles = input.get(0).files ? input.get(0).files.length : 1,
+				label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+			input.trigger('fileselect', [numFiles, label]);
+		});
 
-  // We can watch for our custom `fileselect` event like this
-  $(document).ready( function() {
-      $(':file').on('fileselect', function(event, numFiles, label) {
+		// We can watch for our custom `fileselect` event like this
+		$(document).ready(function () {
+			$(':file').on('fileselect', function (event, numFiles, label) {
 
-          var input = $(this).parents('.input-group').find(':text'),
-              log = numFiles > 1 ? numFiles + ' files selected' : label;
+				var input = $(this).parents('.input-group').find(':text'),
+					log = numFiles > 1 ? numFiles + ' files selected' : label;
 
-          if( input.length ) {
-              input.val(log);
-          } else {
-              if( log ) alert(log);
-          }
+				if (input.length) {
+					input.val(log);
+				} else {
+					if (log) alert(log);
+				}
 
-      });
-  });
-});
+			});
+		});
+	});
+
 </script>
 
 </html>

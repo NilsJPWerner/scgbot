@@ -5,6 +5,9 @@ KINTERA_LAST_NAME_COL = 5
 KINTERA_GIFT_CODE_COL = 7
 KINTERA_SCG_GIFT_CODE = 'SCGM |'
 
+NO_CODE_FIRST_NAME_COL = 5
+NO_CODE_LAST_NAME_COL = 6
+
 GENERAL_NAME_COL = 1
 GENERAL_EMAIL_COL = 3
 GENERAL_GIFT_CODE_COL = 9
@@ -20,10 +23,13 @@ class giving_document(object):
     def check_sheet_type(self):
         """Returns the type of giving document
         Returns:
-            (str): 'KINTERA', 'GENERAL, 'OTHER'
+            (str): 'KINTERA', 'GENERAL, 'NO CODE', 'OTHER'
         """
         if self.sheet['A1'].value == 'Date Entered':
-            return 'KINTERA'
+            if self.sheet['H1'].value == 'Gift Note':
+                return 'KINTERA'
+            else:
+                return 'NO CODE'
         if self.sheet['A1'].value == 'Entity ID':
             return 'GENERAL'
         else:
@@ -38,6 +44,13 @@ class giving_document(object):
                 if row[KINTERA_GIFT_CODE_COL].value == KINTERA_SCG_GIFT_CODE:
                     fname = row[KINTERA_FIRST_NAME_COL].value
                     lname = row[KINTERA_LAST_NAME_COL].value
+                    donor = {'fname': fname, 'lname': lname, 'email': ''}
+                    donors.append(donor)
+        elif self.type == 'NO CODE':
+            for row in self.sheet.iter_rows(min_row=2):
+                if row[KINTERA_GIFT_CODE_COL].value == KINTERA_SCG_GIFT_CODE:
+                    fname = row[NO_CODE_FIRST_NAME_COL].value
+                    lname = row[NO_CODE_LAST_NAME_COL].value
                     donor = {'fname': fname, 'lname': lname, 'email': ''}
                     donors.append(donor)
         elif self.type == 'GENERAL':

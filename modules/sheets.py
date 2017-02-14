@@ -1,5 +1,5 @@
-import gspread
 import os
+import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 SCOPE = ['https://spreadsheets.google.com/feeds']
@@ -43,7 +43,8 @@ class OutreachSheet(object):
 
         message = ":moneybag: *This is your daily giving update* :moneybag:\n\n\n"
         message += ":bar_chart: Total Current Donations: %d\n" % donations
-        message += ":chart_with_upwards_trend: At %0.2f%% of %d donor goal\n" % (percentage, total_goal)
+        message += ":chart_with_upwards_trend:"
+        message += "At %0.2f%% of %d donor goal\n" % (percentage, total_goal)
 
         challenge = self.get_next_challenge()
         message += ":calendar: Next Challenge: %s - %s\n" % (challenge['name'], challenge['date'])
@@ -113,19 +114,37 @@ class SignUpSheet(object):
     def __init__(self):
         GC = gspread.authorize(CREDENTIALS)
         self.sign_up_sheet = GC.open("2017 Committee Outreach").worksheet("Sign-Up Sheet")
+        self.cells = self.sign_up_sheet._fetch_cells()  # Force call on private method
+
+    def local_find_row(self, string):
+        try:
+            match = next(cell for cell in self.cells if cell.value == string)
+            return match.row
+        except StopIteration:
+            raise gspread.exceptions.CellNotFound(string)
+
+    def local_findall_rows(self, string):
+        return [cell.row for cell in self.cells if cell.value == string]
 
     def find_gift_cell(self, first_name, last_name, email):
         try:
-            email_cell = self.sign_up_sheet.find(email)
-            row = email_cell.row
+            if not email:
+                raise gspread.exceptions.CellNotFound
+            row = self.local_find_row(email)
 
         except gspread.exceptions.CellNotFound:
-            fname_rows = [cell.row for cell in self.sign_up_sheet.findall(first_name)]
-            lname_rows = [cell.row for cell in self.sign_up_sheet.findall(last_name)]
-            matched_rows = set(fname_rows) & set(lname_rows)
-            if len(matched_rows) != 1:
-                return False
-            row = matched_rows.pop()
+            lname_rows = self.local_findall_rows(last_name)
+            if len(lname_rows) == 1:  # check if unique last name is found
+                row = lname_rows[0]
+            else:
+                fname_rows = self.local_findall_rows(first_name)
+                if len(fname_rows) == 1:  # check if unique first name is found
+                    row = fname_rows[0]
+                else:
+                    matched_rows = set(fname_rows) & set(lname_rows)
+                    if len(matched_rows) == 1:  # check if unique combination is found
+                        row = matched_rows.pop()
+                    raise gspread.exceptions.CellNotFound  # raise exception if no unique match
 
         return GIFT_COL + str(row)
 
@@ -143,12 +162,13 @@ class SignUpSheet(object):
         Returns:
             (bool): Whether the cell was succesfully updated
         """
-        gift_cell_name = self.find_gift_cell(first_name, last_name, email)
-
         try:
+            gift_cell_name = self.find_gift_cell(first_name, last_name, email)
             if self.sign_up_sheet.acell(gift_cell_name).value != 'Gave':
                 self.sign_up_sheet.update_acell(gift_cell_name, 'Gave')
             return True
+        except gspread.exceptions.CellNotFound:
+            return False
         except gspread.exceptions.UpdateCellError:
             return False
 
@@ -190,7 +210,4 @@ if __name__ == "__main__":
     # outreach = OutreachSheet()
     # print outreach.get_individual_update_message("U3QD2RBN1")
     signup = SignUpSheet()
-    print "SignUpSheet initialized"
-    # print signup.mark_person_as_donated("Nils", "Werner", "")
-    print signup.find_gift_cell("", "", "acevedoj@uchicago.edu")
-
+    print 'signup initialized'

@@ -1,13 +1,13 @@
-import os
-import time
+# import os
+# import time
 from datetime import datetime
 # import atexit
 
-from flask import Flask, request, Response, render_template, redirect
+from flask import Flask, request, Response, render_template
 # from apscheduler.schedulers.background import BackgroundScheduler
 # from apscheduler.triggers.interval import IntervalTrigger
 
-from modules import sheets, slack, excel
+from modules import sheets, excel
 
 app = Flask(__name__)
 
@@ -62,21 +62,27 @@ def test_giving_update():
 @app.route('/upload', methods=['GET', 'POST'])
 def excel_upload():
     if request.method == 'POST':
+        start_time = datetime.now()
+
         f = request.files['file']
         doc = excel.giving_document(f)
         if doc.check_sheet_type() == 'OTHER':
             return Response("That is not a supported file")
         donors = doc.get_donors()
+
+        print "Time to get donors from excel: %s" % str(datetime.now() - start_time)
+        start_time = datetime.now()
+
         gs = sheets.SignUpSheet()
         worked, failed = [], []
-
         for donor in donors:
             success = gs.mark_person_as_donated(donor['fname'], donor['lname'], donor['email'])
-            print success
             if success:
                 worked.append(donor)
             else:
                 failed.append(donor)
+
+        print "Time to fetch and update cells: %s" % str(datetime.now() - start_time)
         return render_template('excel_upload.html', worked=worked, failed=failed)
     else:
         return render_template('excel_upload.html')
@@ -84,4 +90,3 @@ def excel_upload():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
