@@ -12,6 +12,7 @@ CREDENTIALS = ServiceAccountCredentials.from_json_keyfile_name(JSON_CREDENTIALS,
 TEST_CELL = 'B3'
 TOTAL_DONATIONS_CELL = 'B5'
 TOTAL_DONATION_GOAL_CELL = 'B6'
+LAUREN_MESSAGE_CELL = 'B18'
 
 FIRST_PLACE_ROW = 10
 LEADERBOARD_NAME_COL = 'B'
@@ -62,10 +63,14 @@ class OutreachSheet(object):
     def get_personal_update_messages(self):
         members = self.get_all_members()
         messages = []
+        lauren_message = self.bot_sheet.acell(LAUREN_MESSAGE_CELL).value
+        self.bot_sheet.update_acell(LAUREN_MESSAGE_CELL, '')
         for member in members:
             text = ":moneybag: *%s here is your personal update* :moneybag:\n\n" % member['name']
-            text += ":bar_chart: Your donations this fortnight: %s\n" % member['current_fortnight']
-            text += ":chart_with_upwards_trend: Your total donations: %s\n" % member['total_donations']
+            text += ":bar_chart: Your donations this fortnight: %s\n" % member['fortnight']
+            text += ":chart_with_upwards_trend: Your total donations: %s\n\n" % member['total']
+            if lauren_message:
+                text += ":spiral_note_pad: %s" % lauren_message
             messages.append({'slack_id': member['slack_id'], 'text': text})
         return messages
 
@@ -96,8 +101,8 @@ class OutreachSheet(object):
             member = {
                 'name': row[0].value,
                 'slack_id': row[1].value,
-                'total_donations': row[2].value,
-                'current_fortnight': row[4].value
+                'total': row[2].value,
+                'fortnight': row[4].value
             }
             if member['slack_id']:
                 members.append(member)
@@ -172,7 +177,7 @@ class SignUpSheet(object):
 
 if __name__ == "__main__":
     outreach = OutreachSheet()
-    # print outreach.get_personal_update_messages()[0]['text']
-    print outreach.get_daily_update_message()
+    print outreach.get_personal_update_messages()[0]['text']
+    # print outreach.get_daily_update_message()
     # signup = SignUpSheet()
     # print 'signup initialized'
